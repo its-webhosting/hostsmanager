@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>HostMaster App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body>
+    <div id="MainContainer" class="container">
+        <div>
+            <h1>Etc Hosts Manager App</h1>
+        </div>
+        <main>
+            <nav id="NavBar">
+                <ul>
+                    <li onClick="pageChange('profiles')" class="active" id="profilesTab">Profiles</li>
+                    <li onClick="pageChange('add')" id="addProfileTab">Add Profile</li>
+                </ul>
+            </nav>
+            <article class="page" id="addProfile">
+                <form id="profileForm">
+                    <label for="fqdn">FQDN:</label>
+                    <input type="text" id="fqdn" name="fqdn" required><br>
+
+                    <label for="ip">IP:</label>
+                    <input type="text" id="ip" name="ip" required><br>
+
+                    <label for="nickname">Nickname:</label>
+                    <input type="text" id="nickname" name="nickname"><br>
+
+                    <input type="checkbox" id="updateExisting" name="updateExisting" disabled>
+
+                    <input type="submit" value="Add Profile">
+                </form>
+            </article>
+            <article class="page" id="profiles">
+                <table id="ProfileTable">
+                    <tr>
+                        <th>FQDN</th>
+                        <th>IP</th>
+                        <th>Nickname</th>
+                    </tr>
+                </table>
+            </article>
+        </main>
+    </div>
+    <script src="./js/index.js"></script>
+</body>
+
+</html>

@@ -3,7 +3,7 @@
   "productName": "hostsmanager",
   "version": "1.0.0",
   "description": "My Electron application description",
-  "main": "src/index.js",
+  "main": "src/main.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
@@ -18,7 +18,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.0"
+    "electron-squirrel-startup": "^1.0.0",
+    "sudo-prompt": "^9.2.1"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.2.1",

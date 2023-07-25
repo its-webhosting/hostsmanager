@@ -1,0 +1,44 @@
+#NavBar {
+  margin-bottom: -2rem;
+}
+
+#NavBar ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--card-background-color);
+  border-radius: 5px 5px 0px 0px;
+}
+
+#NavBar ul:hover {
+  background-color: var(--card-background-color);
+}
+
+#NavBar li {
+  float: left;
+  display: inline;
+  padding: 10px 7px;
+  background-color: #0c1216;
+}
+
+#NavBar li.active {
+  background-color: inherit;
+}
+
+/* tr nice hover effect if not first item */
+#ProfileTable tr:not(:first-child):hover {
+  background-color: #015801;
+  transition: background-color 0.5s ease;
+}
+
+#ProfileTable tr:not(:first-child) {
+  background-color: transparent;
+}
+
+#updateExisting {
+  position: absolute;
+  right: 0;
+  top: 0;
+  opacity: 0;
+}
