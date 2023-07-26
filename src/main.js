@@ -1,31 +1,208 @@
-const { app, BrowserWindow, Menu, Tray, ipcMain } = require('electron');
-const path = require('path');
-const fs = require('fs');
-const { profile } = require('console');
+// THIS APP USES YARN, NOT NPM, PLEASE DO NOT DIRTY THE PACKAGE.JSON WITH NPM PACKAGES
+
+/** HOSTSMANAGER TLO
+ * 
+ * 1. Create a GUI that allows users to add/remove profiles
+ * 2. Create a tray icon that allows users to quickly switch profiles
+ * 
+ * Start To End || STE
+ * 
+ * 1. Create a tray icon that allows users to quickly switch profiles, toggle profiles, and stop the app
+ * 2. Create a GUI that allows users to add/remove profiles
+ * 3. Manage the hosts file based on the profiles selected, and allow users to toggle profiles
+ * 4. Track profiles through a JSON configuration file
+ * 
+ * TO DO || TODO
+ * 
+ * 1. Prevent user from needing to enter password every time on linux/mac
+ */
 
 
 // Environment Variables & Setup  
-let mainWindow, tray;
-let profiles = new Array();
+const { app, BrowserWindow, Menu, Tray, ipcMain } = require('electron');
+const path = require('path');
+const fs = require('fs');
+const {...Global} = require('./js/globals.js');
+const sudo = require("sudo-prompt");
+const sudoOptions = {
+  name: 'HostsManager',
+  icns: path.join(__dirname, 'assets', 'tray-icon.png'),
+};
 
-// Use JSON file to store profiles in user's appdata folder
-const userDataPath = app.getPath('userData');
-const profilesPath = path.join(userDataPath, 'profiles.json');
+// Startup App Management
+app.on('ready', async () => {
+  let profiles = Global.profiles = profileDbInit(); // Sets the profiles variable to the contents of the profiles.json file
+  createTray(profiles);
+});
 
-// Create profiles.json if it doesn't exist
-if (!fs.existsSync(profilesPath)) {
-  fs.writeFileSync(profilesPath, JSON.stringify(profiles));
+// Tray Management
+const createTray = (profiles) => {
+  tray = new Tray(path.join(__dirname, 'assets', 'tray-icon.png'));
+  tray.setToolTip('Hosts Manager');
+  updateTrayMenu(profiles);
+}
+const updateTrayMenu = async (profiles = Global.profiles) => {
+  const menu = Menu.buildFromTemplate([
+    { label: 'Open GUI', click: () => createWindow() },
+    { type: 'separator' },
+    { label: 'Profiles', submenu: profiles.map(profile => { return { label: profile.nickname, type:'checkbox', checked:profile.active, click: () => UpdateHostsFile(profile.fqdn, profile.ip) } }) },
+    { type: 'separator' },
+    { label: 'Quit', click: () => app.quit() },
+  ]);
+  tray.setContextMenu(menu);
 }
 
-// Read profiles.json and store in profiles array
-try {
-  profiles = JSON.parse(fs.readFileSync(profilesPath));
-} catch {
-  throwError("Error reading profiles.json, please delete the file and restart the app", profilesPath);
+// Profile Management Setup (Synchonous)
+const profileDbInit = () => {
+  let profiles = [];
+  if (!fs.existsSync(Global.profilesPath)) {
+    fs.writeFileSync(Global.profilesPath, JSON.stringify(profiles));
+  }
+  try {
+    profiles = JSON.parse(fs.readFileSync(Global.profilesPath));
+    console.log("Profiles Loaded");
+    console.log(Global.profilesPath);
+  } catch {
+    throwError("Error reading profiles.json, please delete the file and restart the app", Global.profilesPath);
+  }
+  if(profiles.length == 0){
+    profiles.push({nickname: "Default", fqdn: "localhost", ip: "127.0.0.1"});
+  }
+
+  // Read the hosts file and set active to true if the fqdn is found
+  // Change the hosts path based on OS
+  let os = process.platform;
+  let hostsPath = "";
+  if (os == 'win32') {
+    hostsPath = path.join('C:\\Windows\\System32\\drivers\\etc\\hosts');
+  }
+  else if (os == 'darwin') {
+    hostsPath = path.join('/etc/hosts');
+  }
+  else if (os == 'linux') {
+    hostsPath = path.join('/etc/hosts');
+  }
+  else {
+    throwError("Unsupported OS", os);
+  }
+  let hosts = fs.readFileSync(hostsPath, 'utf8');
+  let hostsArray = hosts.split('\n');
+  // Itterate through the hosts file, and set active to true if the fqdn is found
+  for (let i = 0; i < hostsArray.length; i++) {
+    for (let j = 0; j < profiles.length; j++) {
+      const regex = new RegExp(profiles[j].ip + '\\s+' + profiles[j].fqdn, 'i');
+      if (hostsArray[i].includes(profiles[j].fqdn)) {
+        // Check if it matches a regex for a valid hosts file entry
+        if (regex.test(hostsArray[i])) {
+          // Check if the line is commented out
+          if (hostsArray[i].charAt(0) == "#") {
+            profiles[j].active = false;
+          }
+          else {
+            profiles[j].active = true;
+          }
+        }
+      }
+    }
+  }
+  console.log(profiles);
+  return profiles;
 }
+
+// Hosts Management
+function UpdateHostsFile(fqdn, ip, remove = false) {
+  let profile = Global.profiles.find(profile => profile.fqdn == fqdn);
+  profile.deleted = false;
+  let os = process.platform;
+  console.log("Toggling " + fqdn + " " + ip + " on " + os);
+
+  // Set hosts path based on OS
+  let hostsPath = "";
+  if (os == 'win32') {
+    hostsPath = path.join('C:\\Windows\\System32\\drivers\\etc\\hosts');
+  }
+  else if (os == 'darwin' || os == 'linux') {
+    hostsPath = path.join('/etc/hosts');
+  }
+  else {
+    throwError("Unsupported OS", os);
+  }
+  let hosts = fs.readFileSync(hostsPath, 'utf8');
+  let hostsArray = hosts.split('\n');
+  // go through line by line and see if the fqdn is already there
+  let fqdnFound = false;
+  const regex = new RegExp(ip + '\\s+' + fqdn, 'i');
+  for (let i = 0; i < hostsArray.length; i++) {
+    if (hostsArray[i].includes(fqdn)) {
+      // Check if it matches a regex for a valid hosts file entry
+      if (regex.test(hostsArray[i])) {
+        fqdnFound = true;
+        if(remove){
+          // Delete the line
+          hostsArray[i] = '';
+          profile.deleted = true;
+        }
+        // Check if the line is commented out
+        else if (hostsArray[i].charAt(0) == "#") {
+          // If the line is commented out, remove the comment
+          hostsArray[i] = hostsArray[i].replaceAll('#', '');
+          profile.active = true;
+        }
+        else {
+          // If the line is not commented out, comment it out
+          hostsArray[i] = '#' + hostsArray[i];
+          profile.active = false;
+        }
+      }
+    }
+  }
+  // If the fqdn was not found, add it to the end of the file
+  if (!fqdnFound) {
+    hostsArray.push(ip + '\t' + fqdn);
+    profile.active = true;
+  }
+
+  // Clean up empty lines
+  hostsArray = hostsArray.filter(function (el) {
+    return el != "";
+  });
+
+  // Add empty line at the end of the file for catting
+  hostsArray.push("");
+
+  // save or delete the profile
+  if(profile.deleted){
+    Global.profiles = Global.profiles.filter(profile => profile.fqdn != fqdn);
+    console.log("Deleting profile " + fqdn);
+  } else {
+    console.log(Global.profiles);
+    Global.profiles.find(profile => profile.fqdn == fqdn).ip = ip;
+    Global.profiles.find(profile => profile.fqdn == fqdn).active = profile.active;
+    console.log("Saving profile " + fqdn);
+  }
+
+  // Write the hosts file
+  if(os == 'win32'){
+    fs.writeFileSync(hostsPath, hostsArray.join('\n'));
+    saveProfiles();
+    refreshApp();
+  } else {
+    // Linux and Mac
+    fs.writeFileSync("/tmp/hoststmp", hostsArray.join('\n'));
+    sudo.exec("mv /tmp/hoststmp /etc/hosts", sudoOptions, function (error, stdout, stderr) {
+      if (error) {
+        throwError("Error updating hosts file", error);
+      }
+      saveProfiles();
+      refreshApp();
+    });
+  }
+}
+
+
 // Window Management
 function createWindow() {
-  mainWindow = new BrowserWindow({
+  Global.mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -34,39 +211,19 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'frontend', 'index.html'));
+  Global.mainWindow.loadFile(path.join(__dirname, 'frontend', 'index.html'));
 
-  mainWindow.on('closed', () => {
-    mainWindow = null;
+  Global.mainWindow.on('closed', () => {
+    Global.mainWindow = null;
   });
 }
-// Tray Management
-const createTray = () => {
-  tray = new Tray(path.join(__dirname, 'assets', 'tray-icon.png'));
-  tray.setToolTip('Etc Manager');
-  updateTrayMenu();
-}
-const updateTrayMenu = async () => {
-  let profiles = await getProfiles();
-  const menu = Menu.buildFromTemplate([
-    { label: 'Open GUI', click: () => createWindow() },
-    { type: 'separator' },
-    { label: 'Profiles', submenu: profiles.map(profile => { return { label: profile.nickname, click: () => UpdateHostsFile(profile.fqdn, profile.ip) } }) },
-    { type: 'separator' },
-    { label: 'Quit', click: () => app.quit() },
-  ]);
-  tray.setContextMenu(menu);
-}
 // Profile/Hosts Management
-async function getProfiles() {
-  return profiles;
-}
 async function sendProfiles() {
-  let profiles = await getProfiles();
-  mainWindow.webContents.send('getProfiles', profiles);
+  Global.mainWindow.webContents.send('getProfiles', Global.profiles);
 }
 async function saveProfiles() {
   return new Promise((resolve, reject) => {
+    let {profiles, profilesPath} = Global;
     // Save the profiles to the profiles.json file
     fs.writeFileSync(profilesPath, JSON.stringify(profiles));
     // Verify the profiles were saved to the profiles.json file correctly
@@ -83,49 +240,12 @@ async function saveProfiles() {
     }
   });
 }
-function UpdateHostsFile(fqdn, ip, remove = false) {
-  console.log(remove ? "Removing" : "Adding" + " " + fqdn + " " + ip);
-  const fs = require('fs');
-  // Set Hosts based on OS
-  const hostsPath = (process.platform == 'win32' ? 'C:\\Windows\\System32\\drivers\\etc\\hosts' : '/etc/hosts');
-  // Read the hosts file
-  fs.readFile(hostsPath, 'utf8', function (err, data) {
-    if (err)
-      return console.log(err);
-    // Split the hosts file into an array of lines
-    let lines = data.split('\n');
-    // Find the line with the fqdn
-    let lineIndex = lines.findIndex((line) => line.includes(fqdn));
-    // If the line exists
-    if (lineIndex > -1) {
-      // Put a # in front of the line if we are removing it
-      if (remove) {
-        lines[lineIndex] = '#' + lines[lineIndex];
-      } else {
-        // Remove the # from the line if it exists
-        lines[lineIndex] = lines[lineIndex].replace('#', '');
-      }
-    } else {
-      // If we are not removing the line
-      if (!remove) {
-        // Add the line
-        lines.push(ip + ' ' + fqdn);
-      }
-    }
-    // Write the hosts file
-    fs.writeFile(hostsPath, lines.join('\n'), function (err) {
-      if (err) return console.log(err);
-      console.log("Hosts file updated.")
-      console.log(lines.join('\n'));
-    });
-  });
-}
 async function refreshApp() {
-  sendProfiles();
+  if(Global.mainWindow !== null) sendProfiles();
   updateTrayMenu();
 }
-// Error Handling
-const throwError = (message, path, die = true) => {
+// // Error Handling
+const throwError = (message, loc, die = true) => {
   // Create error window
   let errorWindow = new BrowserWindow({
     width: 400,
@@ -135,9 +255,9 @@ const throwError = (message, path, die = true) => {
       nodeIntegration: true
     }
   });
-  message = message + "\n\n" + path;
+  message = message + "\n\n" + loc;
   // Load error.html
-  errorWindow.loadFile(path.join(__dirname, 'error.html'));
+  errorWindow.loadFile(path.join(__dirname, "frontend" ,'error.html'));
 
   // Send error message to error.html
   errorWindow.webContents.on('did-finish-load', () => {
@@ -151,11 +271,11 @@ const throwError = (message, path, die = true) => {
     }
   });
 }
-// IPC Communication
+// // IPC Communication
 ipcMain.on('addProfile', (event, profileData) => {
   const { fqdn, ip, nickname } = profileData;
   // Save the profile to the profile array and the profiles.json file
-  profiles.push({ fqdn, ip, nickname });
+  Global.profiles.push({ fqdn, ip, nickname });
   saveProfiles().then(() => {
     console.log('Profile saved to the database.');
     refreshApp();
@@ -167,22 +287,14 @@ ipcMain.on('addProfile', (event, profileData) => {
 
 ipcMain.on('removeProfile', (event, profileData) => {
   // Remove the profile from the profile array and the profiles.json file
-  profiles = profiles.filter((profile) => profile.fqdn != profileData.fqdn);
-  saveProfiles().then(() => {
-    console.log('Profile Removed from the database.');
-    refreshApp();
-  }).catch((err) => {
-    console.error(err);
-    throwError("Something Went Wrong while Saving Profiles", profilesPath, false);
-  });
-}
-);
+  UpdateHostsFile(profileData.fqdn, profileData.ip, true)
+});
 
 ipcMain.on('updateProfile', (event, profileData) => {
   const { fqdn, ip, nickname } = profileData;
   let found = false;
   // Update the profile in the profile array and the profiles.json file
-  profiles = profiles.map((profile) => {
+  Global.profiles = Global.profiles.map((profile) => {
     if (profile.fqdn == fqdn) {
       found = true;
       profile.ip = ip;
@@ -191,30 +303,22 @@ ipcMain.on('updateProfile', (event, profileData) => {
     return profile;
   });
   if (!found) {
-    profiles.push({ fqdn, ip, nickname });
+    Global.profiles.push({ fqdn, ip, nickname });
   }
   saveProfiles().then(() => {
     console.log('Profile saved to the database.');
     refreshApp();
-  }
-  ).catch((err) => {
+  }).catch((err) => {
     console.error(err);
     throwError("Something Went Wrong while Saving Profiles", profilesPath, false);
-  }
-  ); 
-  
-}
-);
+  }); 
+});
 
 ipcMain.on('getProfiles', async (event) => {
-  sendProfiles();
-}
-);
-// Initialization & Event Handling
-app.on('ready', async () => {
-  profiles = await getProfiles();
-  createTray();
+  event.reply('getProfiles', Global.profiles);
 });
+
+// App Prevent AutoClose
 app.on('window-all-closed', () => {
   // Hide the dock icon but keep the app running
   if (process.platform == 'darwin') {
