@@ -1,8 +1,8 @@
 {
   "name": "hostsmanager",
   "productName": "hostsmanager",
-  "version": "1.0.0",
-  "description": "My Electron application description",
+  "version": "1.0.1",
+  "description": "A simple ElectronJS application to manage your etc/hosts file",
   "main": "src/main.js",
   "scripts": {
     "start": "electron-forge start",
@@ -13,8 +13,8 @@
   },
   "keywords": [],
   "author": {
-    "name": "Codokk",
-    "email": "Codokk101@gmail.com"
+    "name": "Cody Krist",
+    "email": "cmkrist@umich.edu"
   },
   "license": "MIT",
   "dependencies": {

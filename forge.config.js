@@ -6,19 +6,29 @@ module.exports = {
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      platforms: ['win32'],
+      config: {
+        
+      },
     },
     {
       name: '@electron-forge/maker-zip',
       platforms: ['darwin'],
+      config: {
+        
+      },
     },
     {
       name: '@electron-forge/maker-deb',
-      config: {},
-    },
-    {
-      name: '@electron-forge/maker-rpm',
-      config: {},
+      platforms: ['linux'],
+      config: {
+        options: {
+          maintainer: 'Cody Krist',
+          categories: ['Development'],
+          genericName: 'Hosts Manager',
+          productName: "Hosts Manager"
+        },
+      },
     },
   ],
   plugins: [
