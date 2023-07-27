@@ -4,6 +4,8 @@ on: [push, pull_request]
 jobs:
   build_on_linux:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_Token }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@master
@@ -16,6 +18,8 @@ jobs:
 
   build_on_mac:
     runs-on: macos-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_Token }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@master
@@ -28,6 +32,8 @@ jobs:
 
   build_on_win:
     runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ secrets.GH_Token }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@master
