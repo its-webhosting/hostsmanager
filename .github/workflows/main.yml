@@ -36,13 +36,13 @@ jobs:
         run: |
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             # Run your macOS build command here (e.g., buildMac)
-            ./buildMac
+            yarn run buildMac
           elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             # Run your Linux build command here (e.g., buildLinux)
-            ./buildLinux
+            yarn run buildLinux
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
             # Run your Windows build command here (e.g., buildWin)
-            ./buildWin
+            yarn run buildWin
           else
             echo "Unsupported OS: ${{ matrix.os }}"
             exit 1
