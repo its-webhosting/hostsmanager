@@ -2,22 +2,6 @@ name: Build
 on: [push, pull_request]
 
 jobs:
-  create_Release:
-    runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GH_Token }}
-    steps:
-    - name: create release
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: "build/**/*"
-        token: ${{ secrets.GH_Token }}
-        releaseName: "v${{ github.ref }}"
-        releaseNotes: "Release v${{ github.ref }}"
-        releaseBody: "Release v${{ github.ref }}"
-        draft: true
-        prerelease: false
-
   build_on_linux:
     runs-on: ubuntu-latest
     env:
