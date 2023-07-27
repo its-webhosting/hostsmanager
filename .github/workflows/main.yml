@@ -1,35 +1,62 @@
-name: Build/release
-
-on: 
+name: Build and Deploy
+on:
   push:
     branches:
-      - master
+      - main
+
   workflow_dispatch:
 
 jobs:
-  release:
+  build_and_deploy:
     runs-on: ${{ matrix.os }}
-
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
 
     steps:
-      - name: Check out Git repository
+      - name: Check out the code
         uses: actions/checkout@v2
 
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v1
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
         with:
-          node-version: 20
+          node-version: '20'
 
-      - name: Build/release Electron app
-        uses: samuelmeuli/action-electron-builder@v1
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Postinstall
+        run: yarn run postinstall
+
+      - name: Get package version
+        id: get_package_version
+        run: echo ::set-output name=version::$(node -p "require('./package.json').version")
+
+      - name: Build and Deploy
+        run: |
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            # Run your macOS build command here (e.g., buildMac)
+            ./buildMac
+          elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            # Run your Linux build command here (e.g., buildLinux)
+            ./buildLinux
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+            # Run your Windows build command here (e.g., buildWin)
+            ./buildWin
+          else
+            echo "Unsupported OS: ${{ matrix.os }}"
+            exit 1
+          fi
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # GitHub token, automatically provided to the action
-          # (No need to define this secret in the repo settings)
-          github_token: ${{ secrets.github_token }}
-
-          # If the commit is tagged with a version (e.g. "v1.0.0"),
-          # release the app after building
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          tag_name: v${{ steps.get_package_version.outputs.version }}
+          release_name: Release v${{ steps.get_package_version.outputs.version }}
+          body: |
+            Describe your release here
+          draft: true
+          prerelease: false
