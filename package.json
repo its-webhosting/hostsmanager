@@ -1,13 +1,13 @@
 {
   "name": "hostsmanager",
   "productName": "hostsmanager",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A simple ElectronJS application to manage your etc/hosts file",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
     "postinstall": "electron-builder install-app-deps",
-    "build": "electron-builder --mac --windows --linux",
+    "build": "echo \"Please specify a platform: win, mac, linux\"",
     "buildWin": "electron-builder --win",
     "buildMac": "electron-builder --mac",
     "buildLinux": "electron-builder --linux",

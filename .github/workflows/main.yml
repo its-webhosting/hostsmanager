@@ -1,46 +1,39 @@
-name: Build and Deploy
-on:
-  push:
-    branches:
-      - main
-
-  workflow_dispatch:
+name: Build
+on: [push, pull_request]
 
 jobs:
-  build_and_deploy_win:
-    runs-on: windows-latest
-
+  build_on_linux:
+    runs-on: ubuntu-latest
     steps:
-      - name: Check out the code
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@master
+      with:
+        node-version: 20
+    - name: install dependencies
+      run: yarn install
+    - name: build
+      run: yarn buildLinux
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '20'
+  build_on_mac:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@master
+      with:
+        node-version: 20
+    - name: install dependencies
+      run: npm install
+    - name: build
+      run: yarn buildMac
 
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Postinstall
-        run: yarn run postinstall
-
-      - name: Get package version
-        id: get_package_version
-        run: echo ::set-output name=version::$(node -p "require('./package.json').version")
-
-      - name: Build and Deploy
-        run: yarn run buildWin
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.get_package_version.outputs.version }}
-          release_name: Release v${{ steps.get_package_version.outputs.version }}
-          body: |
-            Describe your release here
-          draft: true
-          prerelease: false
+  build_on_win:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@master
+      with:
+        node-version: 20
+    - name: install dependencies
+      run: yarn install
+    - name: build
+      run: yarn buildWin
