@@ -20,6 +20,7 @@
 
 // Environment Variables & Setup  
 const { app, BrowserWindow, Menu, Tray, ipcMain } = require('electron');
+const {autoUpdater} = require("electron-updater");
 const path = require('path');
 const fs = require('fs');
 const {...Global} = require('./js/globals.js');
@@ -31,6 +32,8 @@ const sudoOptions = {
 
 // Startup App Management
 app.on('ready', async () => {
+  // Check for updates
+  autoUpdater.checkForUpdatesAndNotify();
   let profiles = Global.profiles = profileDbInit(); // Sets the profiles variable to the contents of the profiles.json file
   createTray(profiles);
 });

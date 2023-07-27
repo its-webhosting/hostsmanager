@@ -1,3 +1,4 @@
+/** THIS FILE IS NO LONGER IN USE */
 module.exports = {
   packagerConfig: {
     asar: true,

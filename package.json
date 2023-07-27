@@ -5,11 +5,36 @@
   "description": "A simple ElectronJS application to manage your etc/hosts file",
   "main": "src/main.js",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
-    "publish": "electron-forge publish",
-    "lint": "echo \"No linting configured\""
+    "start": "electron .",
+    "postinstall": "electron-builder install-app-deps",
+    "build": "electron-builder --mac --windows --linux",
+    "buildWin": "electron-builder --win",
+    "buildMac": "electron-builder --mac",
+    "buildLinux": "electron-builder --linux",
+    "release": "electron-builder --mac --windows --linux --publish always",
+    "releaseWin": "electron-builder --win --publish always",
+    "releaseMac": "electron-builder --mac --publish always",
+    "releaseLinux": "electron-builder --linux --publish always"
+  },
+  "build": {
+    "appId": "com.cmkrist.hostsmanager",
+    "productName": "Hosts Manager",
+    "mac": {
+      "category": "public.app-category.utilities"
+    },
+    "dmg": {
+      "icon": false
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": [
+        "deb",
+        "AppImage"
+      ],
+      "category": "Utility"
+    }
   },
   "keywords": [],
   "author": {
@@ -18,17 +43,12 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@electron-forge/maker-dmg": "^6.2.1",
-    "electron-squirrel-startup": "^1.0.0",
+    "electron-build": "^0.0.3",
+    "electron-updater": "^6.1.1",
     "sudo-prompt": "^9.2.1"
   },
   "devDependencies": {
-    "@electron-forge/cli": "^6.2.1",
-    "@electron-forge/maker-deb": "^6.2.1",
-    "@electron-forge/maker-rpm": "^6.2.1",
-    "@electron-forge/maker-squirrel": "^6.2.1",
-    "@electron-forge/maker-zip": "^6.2.1",
-    "@electron-forge/plugin-auto-unpack-natives": "^6.2.1",
-    "electron": "25.3.1"
+    "electron": "25.3.1",
+    "electron-builder": "^24.6.3"
   }
 }
