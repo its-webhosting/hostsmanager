@@ -1,0 +1,55 @@
+name: Release
+on:
+  release:
+    types: [published, prereleased, created, edited, deleted]
+
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+
+  publish_on_linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2       
+    - uses: actions/setup-node@master
+      with:
+        node-version: 20
+    - name: install dependencies
+      run: yarn install
+    - name: publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_Token }}
+      run: yarn run publish
+
+  publish_on_mac:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@master
+      with:
+        node-version: 20
+    - name: install dependencies
+      run: yarn install
+    - name: publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_Token }}
+      run: yarn run publish
+
+  publish_on_win:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2       
+    - uses: actions/setup-node@master
+      with:
+        node-version: 20
+    - name: install dependencies
+      run: yarn install
+    - name: publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_Token }}
+      run: yarn run publish
