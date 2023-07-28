@@ -26,7 +26,7 @@ const {...Global} = require('./js/globals.js');
 const sudo = require("sudo-prompt");
 const sudoOptions = {
   name: 'HostsManager',
-  icns: path.join(__dirname, 'assets', 'tray-icon.png'),
+  icns: path.join(__dirname, 'assets', 'icon-32Template.png'),
 };
 
 // Startup App Management
@@ -37,7 +37,7 @@ app.on('ready', async () => {
 
 // Tray Management
 const createTray = (profiles) => {
-  tray = new Tray(path.join(__dirname, 'assets', 'tray-icon.png'));
+  tray = new Tray(path.join(__dirname, 'assets', 'icon-32Template.png'));
   tray.setToolTip('Hosts Manager');
   updateTrayMenu(profiles);
 }

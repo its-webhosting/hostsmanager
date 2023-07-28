@@ -1,6 +1,9 @@
 module.exports = {
   packagerConfig: {
     asar: true,
+    appBundleId: 'com.cmkrist.hostsmanager',
+    appCategoryType: 'public.app-category.developer-tools',
+
   },
   rebuildConfig: {},
   makers: [
@@ -8,14 +11,17 @@ module.exports = {
       name: '@electron-forge/maker-squirrel',
       platforms: ['win32'],
       config: {
-        
+        iconUrl: 'https://raw.githubusercontent.com/cmkrist/hostsmanager/master/src/assets/icon-256.ico',
+        setupIcon: 'src/assets/icon-256.ico'
       },
     },
     {
-      name: '@electron-forge/maker-zip',
+      name: '@electron-forge/maker-dmg',
       platforms: ['darwin'],
       config: {
-        
+        format: 'ULFO',
+        overwrite: true,
+        icon: 'src/assets/icon-512.icns'
       },
     },
     {
@@ -26,7 +32,8 @@ module.exports = {
           maintainer: 'Cody Krist',
           categories: ['Development'],
           genericName: 'Hosts Manager',
-          productName: "Hosts Manager"
+          productName: "Hosts Manager",
+          icon: 'src/assets/icon-512.png'
         },
       },
     },
