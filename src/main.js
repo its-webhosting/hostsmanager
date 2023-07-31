@@ -19,7 +19,8 @@
 
 
 // Environment Variables & Setup  
-const { app, BrowserWindow, Menu, Tray, ipcMain } = require('electron');
+const { app, BrowserWindow, dialog, Menu, Tray, ipcMain } = require('electron');
+const axios = require("axios");
 const path = require('path');
 const fs = require('fs');
 const {...Global} = require('./js/globals.js');
@@ -31,10 +32,41 @@ const sudoOptions = {
 
 // Startup App Management
 app.on('ready', async () => {
+  checkForUpdates();
   let profiles = Global.profiles = profileDbInit(); // Sets the profiles variable to the contents of the profiles.json file
   createTray(profiles);
 });
-
+// Update Management
+const checkForUpdates = async () => {
+  try {
+    const response = await axios.get('https://api.github.com/repos/cmkrist/hostsmanager/releases/latest');
+    console.log(response.data.html_url);
+    const latestVersion = response.data.tag_name;
+    const currentVersion = "v" + app.getVersion();
+    console.log(latestVersion + " || " + currentVersion);
+    if(latestVersion != currentVersion) {
+      // Dialog to see if they want to update
+      let res = dialog.showMessageBoxSync({
+        type: 'info',
+        buttons: ['Yes', 'No'],
+        title: 'Update Available',
+        message: 'An update is available, would you like to update now?',
+      });
+      console.log(res);
+      if(res === 0) {
+        // Download the update
+        const releaseUrl = response.data.html_url;
+        console.log(releaseUrl);
+        require('electron').shell.openExternal(releaseUrl);
+      }
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
 // Tray Management
 const createTray = (profiles) => {
   tray = new Tray(path.join(__dirname, 'assets', 'icon-32Template.png'));
