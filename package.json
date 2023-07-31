@@ -1,7 +1,7 @@
 {
   "name": "hostsmanager",
   "productName": "hostsmanager",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A simple ElectronJS application to manage your etc/hosts file",
   "main": "src/main.js",
   "scripts": {
