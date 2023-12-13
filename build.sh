@@ -1,9 +1,13 @@
 #!/bin/bash
 echo "Generating Builds..."
 neu build
+echo "Setting Permissons..."
+chmod +x ./bootstrapper
+chmod +x ./dist/hostsmanager/*
 mkdir -p prod
 rm -rf prod/*
 for filename in ./dist/hostsmanager/*; do
+    echo "Processing $filename file..."
     filename=$(basename -- "$filename")
     filename="${filename%.*}"
     mkdir -p "prod/$filename"
@@ -17,6 +21,7 @@ for filename in ./dist/hostsmanager/*; do
         cp "./bootstrapper" "prod/$filename/HostsManager.app/Contents/MacOS/bootstrap"
         cp dist/hostsmanager/resources.neu "prod/$filename/HostsManager.app/Contents/Resources/resources.neu"
         cp resources/icons/icon.icns "prod/$filename/HostsManager.app/Contents/Resources/icon.icns"
+        create-dmg prod/$filename/HostsManager.app prod/$filename
     elif [[ $filename == *"win"* ]]; then
         cp "dist/hostsmanager/$filename.exe" "prod/$filename/hostsmanager.exe"
         cp dist/hostsmanager/resources.neu "prod/$filename/resources.neu"

@@ -7,8 +7,8 @@ Download the latest release from the [Releases](https://github.com/cmkrist/Hosts
 ## Development Setup
 
 Development of this project has been setup for WSL, Mac and Linux.
-Downoad the source code, you will need to install NodeJS/NPM and install the Neutralino CLI
-```npm install -g @neutralinojs/neu```
+Downoad the source code, you will need to install NodeJS/NPM and install the Neutralino CLI and create-dmg packages
+```npm install -g @neutralinojs/neu create-dmg```
 
 After Installation, you can run the program from the root directory with `neu run`
 
