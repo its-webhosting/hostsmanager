@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+
+<head>
+    <title>HostMaster App</title>
+    <link rel="stylesheet" href="./styles/main.css" />
+    <link rel="stylesheet" href="./styles/slider.css">
+    <link rel="shortcut icon" href="./icons/appIcon.png" />
+</head>
+
+<body>
+    <div id="AlertCard" class="dialogPopIn">
+        <div class="title">Success</div>
+        <div class="message">Hosts file updated successfully</div>
+    </div>
+    <div id="OptionsBar" class="hidden">
+        <div id="AddBtn" class="button">
+            <span class="material-symbols-outlined"> add </span>
+            New Entry
+        </div>
+        <div id="SaveBtn" class="button accent">
+            Save All
+        </div>
+        <div id="IconContainer">
+            <span class="material-symbols-outlined" id="OpenHostsFileBtn"> file_open </span>
+            <span class="material-symbols-outlined" id="OpenSettingsBtn"> settings </span>
+        </div>
+    </div>
+    <main id="Main" class="hidden">
+        <div class="row">
+            <div class="ip">127.0.0.1</div>
+            <div class="alias">localhost</div>
+            <div class="options">
+                <label class="switch">
+                    <input type="checkbox" />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+    </main>
+    <div id="OverlayContainer">
+        <div class="NewEntryForm hidden">
+            <h2>Add New Hosts File Entry</h2>
+            <div class="inputContainer">
+                <label for="ip">IP Address</label>
+                <input type="text" name="ip" id="ipInput">
+            </div>
+            <div class="inputContainer">
+                <label for="fqdn">Hosts</label>
+                <input type="text" name="fqdn" id="fqdnInput">
+            </div>
+            <div class="inputContainer">
+                <label for="address">Active</label>
+                <label class="switch" style="margin-top: .5rem">
+                    <input type="checkbox" id="active" checked />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="BottomOptions">
+                <div id="AddEntryBtn">Add</div>
+                <div id="CancelEntryBtn">Cancel</div>
+            </div>
+        </div>
+        <div class="loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+    <script src="./js/neutralino.js"></script>
+    <script src="./js/three.js" type="module" defer></script>
+</body>
+
+</html>

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+MACOS="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+CONTENTS="$(dirname "$MACOS")"
+exec "${MACOS}/main" --path="${CONTENTS}/Resources" --enable-extensions=false
