@@ -20,7 +20,7 @@ const Fix = async () => {
         <div>
             <Button class="mx-1" icon="pi pi-wrench" rounded @click="Fix" />
             <Button class="mx-1" icon="pi pi-external-link" rounded @click="Open" />
-            <Button class="mx-1" icon="pi pi-save" rounded @click="Save" />
+            <Button class="mx-1" icon="pi pi-save" :class="{'bg-red-400 border-red-400': !Manager.ChangesSaved, 'bg-green-300 border-green-300': Manager.ChangesSaved}" rounded @click="Save" />
         </div>
     </div>
 </template>

@@ -5,13 +5,19 @@ import { invoke } from '@tauri-apps/api/tauri'
 export const useManager = defineStore('manager', () => {
     const showDialog = ref(false);
     const Hosts = ref([]);
+    const OldHosts = ref([]);
+    const ChangesSaved = computed(() => {
+        return JSON.stringify(Hosts.value) === JSON.stringify(OldHosts.value);
+    });
 
     // Setters
     const SetHosts = (hosts) => {
         Hosts.value = hosts;
+        OldHosts.value = hosts;
     }
     const SetHostsFromString = (hosts) => {
         Hosts.value = hosts2array(hosts);
+        OldHosts.value = hosts2array(hosts);
     }
     const ShowForm = () => {
         showDialog.value = true;
@@ -113,6 +119,7 @@ export const useManager = defineStore('manager', () => {
 
     return { 
         Hosts,
+        ChangesSaved,
         // Methods
         AddEntry,
         OpenHosts,
