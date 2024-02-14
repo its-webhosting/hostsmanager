@@ -42,6 +42,10 @@ export const useManager = defineStore("manager", () => {
     }
     HideForm();
   };
+
+  const DeleteEntry = (Entry) => {
+    Hosts.value = Hosts.value.filter((entry) => entry !== Entry);
+  };
   // Open the hosts file in the default editor
   const OpenHosts = () => {
     return new Promise((resolve, reject) => {
@@ -130,6 +134,7 @@ export const useManager = defineStore("manager", () => {
     ChangesSaved,
     // Methods
     AddEntry,
+    DeleteEntry,
     OpenHosts,
     SaveHosts,
     SetHosts,
