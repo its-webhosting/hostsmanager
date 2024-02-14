@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "hmgr",
+    "productName": "Hosts Manager",
     "version": "3.0.0"
   },
   "tauri": {
