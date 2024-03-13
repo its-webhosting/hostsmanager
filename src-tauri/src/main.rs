@@ -1,12 +1,23 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::fs::read_to_string;
+use std::fs::write;
+use std::process::exit;
+
 use tauri::Manager;
 
 #[derive(Clone, serde::Serialize)]
 struct Payload {
     args: Vec<String>,
     cwd: String,
+}
+
+fn test_win_perms() -> std::io::Result<()> {
+    let file = read_to_string("C:\\Windows\\System32\\drivers\\etc\\hosts")?;
+    // Try to write to file to check perms
+    write("C:\\Windows\\System32\\drivers\\etc\\hosts", file)?;
+    Ok(())
 }
 
 #[tauri::command]
@@ -43,10 +54,27 @@ fn save_hosts(hosts_string: &str) {
     } else if cfg!(target_os = "windows") {
         std::fs::write("C:\\Windows\\System32\\drivers\\etc\\hosts", hosts_string).unwrap();
     }
-
 }
 
 fn main() {
+    // Promise to check file perms
+    if cfg!(target_os = "macos") {
+    } else if cfg!(target_os = "linux") {
+        // linux_perms().unwrap();
+    } else if cfg!(target_os = "windows") {
+        test_win_perms().unwrap_or_else(|_| {
+            std::process::Command::new("powershell")
+                .arg("Start-Process")
+                .arg("cmd.exe")
+                .arg("-ArgumentList")
+                .arg("'/c icacls \"C:\\Windows\\System32\\drivers\\etc\\hosts\" /grant Everyone:F'")
+                .arg("-Verb")
+                .arg("RunAs")
+                .spawn()
+                .unwrap();
+        });
+    }
+    // Promise Success
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
             println!("{}, {argv:?}, {cwd}", app.package_info().name);
@@ -57,4 +85,6 @@ fn main() {
         .invoke_handler(tauri::generate_handler![open_hosts, save_hosts])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+    // Promise Fail
+    exit(0);
 }

@@ -4,6 +4,7 @@ import Manager from './components/Manager.vue';
 import Navbar from './components/Navbar.vue';
 import { useManager } from './stores/manager';
 const FileManager = useManager();
+
 const Entry = ref({
     ip: "",
     host: "",

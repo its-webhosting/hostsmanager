@@ -1,13 +1,26 @@
 import { ref, computed } from "vue";
 import { defineStore } from "pinia";
+
 import { invoke } from "@tauri-apps/api/tauri";
+import { platform } from '@tauri-apps/api/os';
+
+
 
 export const useManager = defineStore("manager", () => {
   const showDialog = ref(false);
   const Hosts = ref([]);
+  const HFL = ref("");
   const OldHosts = ref([]);
   const ChangesSaved = computed(() => {
     return JSON.stringify(Hosts.value) === JSON.stringify(OldHosts.value);
+  });
+
+  platform().then((platform) => {
+    if (platform === "win32") {
+      HFL.value = "C:\\Windows\\System32\\drivers\\etc\\hosts";
+    } else {
+      HFL.value = "/etc/hosts";
+    }
   });
 
   // Setters
@@ -15,13 +28,16 @@ export const useManager = defineStore("manager", () => {
     Hosts.value = hosts;
     OldHosts.value = hosts;
   };
+
   const SetHostsFromString = (hosts) => {
     Hosts.value = hosts2array(hosts);
     OldHosts.value = hosts2array(hosts);
   };
+
   const ShowForm = () => {
     showDialog.value = true;
   };
+
   const HideForm = () => {
     showDialog.value = false;
   };
@@ -143,6 +159,7 @@ export const useManager = defineStore("manager", () => {
     ShowForm,
     HideForm,
     // Variables
+    HFL,
     showDialog,
   };
 });

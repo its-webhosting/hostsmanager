@@ -3,6 +3,7 @@
 import { ref, onMounted } from "vue";
 import { readTextFile } from "@tauri-apps/api/fs";
 import { useManager } from "../stores/manager";
+import Skeleton from "primevue/skeleton";
 
 const Manager = useManager();
 const selectedEntry = ref({
@@ -10,13 +11,23 @@ const selectedEntry = ref({
   host: "",
   active: false,
 });
+
 const emit = defineEmits(["edit"]);
 
 // Load Functions
 onMounted(async () => {
-  const hosts = await readTextFile("/etc/hosts");
-  Manager.SetHostsFromString(hosts);
+  LoadFile();
 });
+
+// Load File
+const LoadFile = async () => {
+  if(Manager.HFL === "") {
+    setTimeout(LoadFile, 100)
+    return;
+  }
+  const hosts = await readTextFile(Manager.HFL);
+  Manager.SetHostsFromString(hosts);
+};
 
 // Context Menu
 const menu = ref();
@@ -51,6 +62,7 @@ const SaveChanges = () => {
 
   editEntry.value = true;
 };
+
 const UndoChanges = () => {
   selectedEntry.value = {
     ip: "",
@@ -68,6 +80,7 @@ const UndoChanges = () => {
       <li
         class="surface-border"
         v-for="entry in Manager.Hosts"
+        v-if="Manager.Hosts.length > 0"
         @contextmenu="managementMenu($event, entry)"
       >
         <div
@@ -84,6 +97,9 @@ const UndoChanges = () => {
             <InputSwitch v-model="entry.active" />
           </div>
         </div>
+      </li>
+      <li v-else>
+        <Skeleton height="4rem" />
       </li>
     </ul>
   </div>
