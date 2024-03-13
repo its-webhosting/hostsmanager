@@ -71,8 +71,23 @@ fn main() {
                 .arg("-Verb")
                 .arg("RunAs")
                 .spawn()
-                .unwrap();
+                .unwrap_or_else(|_| {
+                    println!("Failed to Fix File Permissions! Exiting...");
+                    exit(1);
+                });
         });
+
+        // Make a backup of the hosts file
+        let hosts_backup = read_to_string("C:\\Windows\\System32\\drivers\\etc\\hosts").unwrap();
+        // Name file based on date and time
+        let hosts_backup_name = format!(
+            ".\\hosts-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
+        );
+        write(hosts_backup_name, hosts_backup).unwrap();
     }
     // Promise Success
     tauri::Builder::default()
